@@ -3,20 +3,12 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from sentence_transformers import InputExample
-from SBERTAgreementModel import SBERTAgreementModel
+from OutputModel import OutputModel
 from tqdm import tqdm
 
 df = pd.read_csv("Dataset/labeled_data.csv", usecols=['label','body_parent','body_child'])
-df.loc[df['label'] != 2, 'label'] = 0
-df.loc[df['label'] == 2, 'label'] = 1
-
-# df.loc[df['label'] !=0, 'label'] = -1
-# df.loc[df['label'] == 0, 'label'] = 1
-# df.loc[df['label'] == -1, 'label'] = 0
-
 train_df = df.head(39000)
 val_df = df.iloc[39000:41000]
-# analyzer = SentimentIntensityAnalyzer()
 
 train_examples = [
     InputExample(texts=[row['body_parent'], row['body_child']], label=row['label'])
@@ -45,13 +37,13 @@ def create_dataloader(examples, batch_size):
 
 # Training parameters
 batch_size = 32
-num_classes = 2
-epochs = 8
-learning_rate = 5e-5
+num_classes = 3
+epochs = 7
+learning_rate = 1e-4#2e-5
 
 # Initialize the model, loss, and optimizer
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = SBERTAgreementModel(num_classes).to(device)
+model = OutputModel(num_classes).to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 
@@ -90,6 +82,8 @@ for epoch in range(epochs):
             loss = criterion(outputs, labels)
             total_val_loss += loss.item()
     
-    torch.save(model.state_dict(), f"intakemodels/intakeM_E{epoch+1}_L{(total_val_loss / len(validation_dataloader)):.3f}_agree_v3.pth")
+    torch.save(model.state_dict(), f"outputmodels/outputM_E{epoch+1}_L{(total_val_loss / len(validation_dataloader)):.3f}.pth")
 
     print(f"Epoch {epoch+1}, Training Loss: {total_loss / len(train_dataloader)}, Validation Loss: {total_val_loss / len(validation_dataloader)}")
+
+# Save the fine-tuned model
