@@ -1,4 +1,9 @@
-Reddit Scraper
+transformers
+intakemodels
+Dataset
+checkpoints
+testing.py
+intakeM_E5_L0.352_agree_v3.pth
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -3,31 +3,25 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 import transformers
-from sentence_transformers import SentenceTransformer, InputExample, losses
+from sentence_transformers import SentenceTransformer, InputExample
 from SBERTAgreementModel import SBERTAgreementModel
+from tqdm import tqdm
 
 # Load the model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = SBERTAgreementModel(base_model_name='sentence-transformers/stsb-distilroberta-base-v2', num_classes=3)  # Same as when you trained
-model.load_state_dict(torch.load('sbert_agreement_model.pth'))  # Load saved weights
+model = SBERTAgreementModel(num_classes=2)
+model.load_state_dict(torch.load('intakemodels/intakeM_E5_L0.352_agree_v3.pth', weights_only=True)) 
 model.to(device)  # Ensure the model is on the right device (GPU or CPU)
 model.eval()
 
-# Input sentences
+df = pd.read_csv("Dataset/labeled_data.csv", usecols=['label','body_parent','body_child'])
+test_df = df.iloc[41000:42895]#13500]
+df.loc[df['label'] != 2, 'label'] = 0
+df.loc[df['label'] == 2, 'label'] = 1
 
-sentences = [
-    ["Joe biden is an idiot. He's practically geriatric.", "What are you talking about? Do you know the number of things he's done for this country? You're probably racist."],
-    ["Joe biden is an idiot. He's practically geriatric.", "Dude is too old to be running the country"],
-    ["This sucks", "Yeah it does"],
-    ["He's gonna win,", "Bullshit"],
-    ["Are we back?", "Nah it's over"],
-    ["We're so back?", "WE'RE SO FUCKING BAAACK!"],
-    ["The sky is blue", "The sky has a blue hue"],
-]
-
-df = pd.read_csv("Debagreement/labeled_data.csv", usecols=['label','body_parent','body_child'])
-test_df = df.iloc[39000:42000]#13500]
-test_df = test_df[test_df['label'] != 1]
+# df.loc[df['label'] != 0, 'label'] = -1
+# df.loc[df['label'] == 0, 'label'] = 1
+# df.loc[df['label'] == -1, 'label'] = 0
 
 def custom_collate_fn(batch):
     """
@@ -53,31 +47,27 @@ batch_size = 32
 test_dataloader = create_dataloader(test_examples, batch_size)
 
 total = len(test_examples)
+# raw_predictions = []
 correct_predictions = 0
 with torch.no_grad():
-    for sentence_pairs, labels in test_dataloader:
+    for sentence_pairs, labels in test_dataloader: #tqdm(test_dataloader):
+        #The progress bar says out of 60 because it's 60 batches, not examples. Each batch is 32 examples.
         sentence1, sentence2 = zip(*sentence_pairs)
+
         outputs = model(list(sentence1), list(sentence2))
+        # outputs = model(["I disagree with that"], ["I agree"])
         predicted_classes = torch.argmax(outputs, dim=1)
+
+        # print()
+        # if (predicted_classes == 1):
+        #     print("The response agreed")
+        # else:
+        #     print("The response did not agree")
+        # exit()
+
         correct_predictions += (predicted_classes == torch.tensor(labels).to(device)).sum().item()
-
-        # for s1, s2, label, prediction in zip(sentence1, sentence2, labels, predicted_classes):
-        #     print(f"Sentence 1: {s1}")
-        #     print(f"Sentence 2: {s2}")
-        #     print(f"True Label: {label}")
-        #     print(f"Predicted Label: {prediction}")
-        #     print("-" * 50)  # Separator for readability
+        # for output in zip(outputs.tolist()):
+        #     raw_predictions.append([output])
 print()
+# print(raw_predictions)
 print(f"Test accuracy was: {(correct_predictions/total)*100}%")
-
-print()
-# Forward pass
-# for sentencepair in sentences:
-#     output = model([sentencepair[0]], [sentencepair[1]])
-#     predicted_class = torch.argmax(output, dim=1).item()
-#     print()
-#     print(f"'{sentencepair[0]}'")
-#     print(f"'{sentencepair[1]}'")
-
-#     readable_class = {0 : "Sentences are disagreeing.", 1 : "Unsure if the sentences agree", 2 : "Sentences are agreeing"}
-#     print(f"Predicted Class: {readable_class[predicted_class]}")
