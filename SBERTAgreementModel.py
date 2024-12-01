@@ -4,8 +4,8 @@ from torch import nn
 from torch.utils.data import DataLoader
 import transformers
 from sentence_transformers import SentenceTransformer, InputExample, losses
-from google.colab import drive 
-from google.colab import files
+# from google.colab import drive 
+# from google.colab import files
 import io
 
 class SBERTAgreementModel(nn.Module):
@@ -33,9 +33,9 @@ class SBERTAgreementModel(nn.Module):
         embeddings2 = self.sbert.encode(sentence2, convert_to_tensor=True)
 
         # Combine embeddings (e.g., element-wise difference and concatenation)
-        diff_em = torch.abs(embeddings1 - embeddings2)
+        # diff_em = torch.abs(embeddings1 - embeddings2)
         # avg_em = (embeddings1 + embeddings2) / 2
-        combined_embeddings = torch.cat([embeddings1, embeddings2, diff_em], dim=1)
+        combined_embeddings = torch.cat([embeddings1, embeddings2], dim=1)
         # embedding = self.sbert.encode([sentence1, sentence2], convert_to_tensor=True)
 
         # Pass through the classification head

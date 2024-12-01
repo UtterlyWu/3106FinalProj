@@ -27,6 +27,7 @@ sentences = [
 
 df = pd.read_csv("Debagreement/labeled_data.csv", usecols=['label','body_parent','body_child'])
 test_df = df.iloc[39000:42000]#13500]
+test_df = test_df[test_df['label'] != 1]
 
 def custom_collate_fn(batch):
     """
