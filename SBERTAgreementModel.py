@@ -14,8 +14,8 @@ class SBERTAgreementModel(nn.Module):
         super(SBERTAgreementModel, self).__init__()
         # establish device
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.agree = SentenceTransformer('transformers/agree_ft_mpnet_Constrast/checkpoint-14000')
-        self.disagree = SentenceTransformer('transformers/disagree_ft_mpnet_Constrast/checkpoint-12000')
+        self.agree = SentenceTransformer('checkpoint-14000')
+        self.disagree = SentenceTransformer('checkpoint-12000')
         # Add a classification head
         self.classifier = nn.Sequential(
             nn.Linear(768 * 2 + 768 * 2, 512),  # 768: embedding size from SBERT
