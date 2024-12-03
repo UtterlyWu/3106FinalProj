@@ -50,20 +50,20 @@ total = len(test_examples)
 # raw_predictions = []
 correct_predictions = 0
 with torch.no_grad():
-    for sentence_pairs, labels in test_dataloader: #tqdm(test_dataloader):
+    for sentence_pairs, labels in tqdm(test_dataloader):
         #The progress bar says out of 60 because it's 60 batches, not examples. Each batch is 32 examples.
         sentence1, sentence2 = zip(*sentence_pairs)
 
         outputs = model(list(sentence1), list(sentence2))
-        # outputs = model(["I disagree with that"], ["I agree"])
+        outputs = model([""], [""])
         predicted_classes = torch.argmax(outputs, dim=1)
 
-        # print()
-        # if (predicted_classes == 1):
-        #     print("The response agreed")
-        # else:
-        #     print("The response did not agree")
-        # exit()
+        print()
+        if (predicted_classes == 1):
+            print("The response agreed")
+        else:
+            print("The response did not agree")
+        exit()
 
         correct_predictions += (predicted_classes == torch.tensor(labels).to(device)).sum().item()
         # for output in zip(outputs.tolist()):

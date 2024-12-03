@@ -13,7 +13,7 @@ class Comparer:
 
         self.model = SBERTAgreementModel(num_classes=2)
 
-        model_path = 'intakeM_E5_L0.352_agree_v3.pth'
+        model_path = 'intakemodels/intakeM_E5_L0.352_agree_v3.pth'
         self.model.load_state_dict(torch.load(model_path, map_location=self.device))
         self.model.to(self.device)
         self.model.eval()
